@@ -3,7 +3,8 @@
 		"DEAssets": "cadence/contracts/DEAssets.cdc",
 		"DEToken": "cadence/contracts/DEToken.cdc",
 		"DEmpire": "cadence/contracts/DEmpire.cdc",
-		"FungibleToken": "cadence/contracts/flow-nft/utility/FungibleToken.cdc",
+		"FungibleToken": "cadence/contracts/flow-ft/FungibleToken.cdc",
+		"FungibleTokenMetadataViews": "cadence/contracts/flow-ft/FungibleTokenMetadataViews.cdc",
 		"MetadataViews": "cadence/contracts/flow-nft/MetadataViews.cdc",
 		"NFTForwarding": "cadence/contracts/flow-nft/utility/NFTForwarding.cdc",
 		"NonFungibleToken": "cadence/contracts/flow-nft/NonFungibleToken.cdc"
@@ -11,20 +12,25 @@
 	"networks": {
 		"emulator": "127.0.0.1:3569",
 		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"sandboxnet": "access.sandboxnet.nodes.onflow.org:9000",
 		"testnet": "access.devnet.nodes.onflow.org:9000"
 	},
 	"accounts": {
 		"default": {
-			"address": "f669cb8d41ce0c74",
-			"key": "9ee2738ef9fb1179aff47bf457d3f77e50dcc65580930a7f4c5922ebc4b1beeb"
+			"address": "045a1763c93006ca",
+			"key": "eaf7979a8bfb90491ea081e00c4099687af32e6a39d30b8486c3d570ff9ac073"
 		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "6d12eebfef9866c9b6fa92b97c6e705c26a1785b1e7944da701fc545a51d4673"
+			"key": "884043f858ffb5fab8dfad7c028f78d05ec35adc50f49473b2f8a208ea8e7ce4"
+		},
+		"flow-ft": {
+			"address": "f669cb8d41ce0c74",
+			"key": "4b48f6e4434e70038690b80eeb80a66baf4797abd414ac1e149afc8b051a7ee9"
 		},
 		"flow-nft": {
-			"address": "fd43f9148d4b725d",
-			"key": "51c88c26262369e20c7906eb94149d78f52c2878c8ac140097a40637be1c662c"
+			"address": "192440c99cb17282",
+			"key": "83204e4a3d99c0b548ea3e83456396f5260a488be70e53fe21843f4378c9befe"
 		}
 	},
 	"deployments": {
@@ -33,8 +39,11 @@
 				"DEAssets",
 				"DEToken",
 				"DEmpire",
-				"FungibleToken",
 				"NFTForwarding"
+			],
+			"flow-ft": [
+				"FungibleToken",
+				"FungibleTokenMetadataViews"
 			],
 			"flow-nft": [
 				"MetadataViews",

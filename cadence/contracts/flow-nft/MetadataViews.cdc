@@ -1,4 +1,4 @@
-import FungibleToken from "./utility/FungibleToken.cdc"
+import FungibleToken from "../flow-ft/FungibleToken.cdc"
 import NonFungibleToken from "./NonFungibleToken.cdc"
 
 /// This contract implements the metadata standard proposed

@@ -1,5 +1,6 @@
 import NonFungibleToken from "./flow-nft/NonFungibleToken.cdc"
 import MetadataViews from "./flow-nft/MetadataViews.cdc"
+import DEToken from "./DEToken.cdc"
 
 pub contract DEAssets: NonFungibleToken {
 
@@ -156,17 +157,12 @@ pub contract DEAssets: NonFungibleToken {
                     )
                 case Type<MetadataViews.Traits>():
                     // exclude mintedTime and foo to show other uses of Traits
-                    let excludedTraits = ["mintedTime", "foo"]
+                    let excludedTraits = ["mintedTime"]
                     let traitsView = MetadataViews.dictToTraits(dict: self.metadata, excludedNames: excludedTraits)
 
                     // mintedTime is a unix timestamp, we should mark it with a displayType so platforms know how to show it.
                     let mintedTimeTrait = MetadataViews.Trait(name: "mintedTime", value: self.metadata["mintedTime"]!, displayType: "Date", rarity: nil)
                     traitsView.addTrait(mintedTimeTrait)
-
-                    // foo is a trait with its own rarity
-                    let fooTraitRarity = MetadataViews.Rarity(score: 10.0, max: 100.0, description: "Common")
-                    let fooTrait = MetadataViews.Trait(name: "foo", value: self.metadata["foo"], displayType: nil, rarity: fooTraitRarity)
-                    traitsView.addTrait(fooTrait)
                     
                     return traitsView
 
@@ -331,9 +327,6 @@ pub contract DEAssets: NonFungibleToken {
         metadata["mintedTime"] = currentBlock.timestamp
         metadata["minter"] = recipient.owner!.address
 
-        // this piece of metadata will be used to show embedding rarity into a trait
-        metadata["foo"] = "bar"
-
         // create a new NFT
         var newNFT <- create NFT(
             typeId: typeId, 
@@ -351,8 +344,8 @@ pub contract DEAssets: NonFungibleToken {
         DEAssets.totalSupply = DEAssets.totalSupply + UInt64(1)
     }
 
-    access(account) fun lockAsset(typeId: UInt, count: UInt64){
-        let collection <- self.account.load<@Collection>(from: self.CollectionStoragePath) ?? panic("collection not found")
+    access(account) fun lockAsset(acc: AuthAccount, typeId: UInt, count: UInt64){
+        let collection <- acc.load<@Collection>(from: self.CollectionStoragePath) ?? panic("collection not found")
         let lockedAssets = collection.lockedAssets!
         let availableAssets = collection.availableAssets!
         var lockedTypeCount = UInt64(0)
@@ -370,11 +363,11 @@ pub contract DEAssets: NonFungibleToken {
         lockedTypeCount = count
         collection.updateLockedAssets(typeId: typeId, count: lockedTypeCount)
         collection.updateAvailableAssets(typeId: typeId, count: availabeTypeCount)
-        self.account.save(<- collection, to: self.CollectionStoragePath)
+        acc.save(<- collection, to: self.CollectionStoragePath)
     }
 
-    access(account) fun unLockAsset(typeId: UInt, count: UInt64){
-        let collection <- self.account.load<@Collection>(from: self.CollectionStoragePath) ?? panic("collection not found")
+    access(account) fun unLockAsset(acc: AuthAccount, typeId: UInt, count: UInt64){
+        let collection <- acc.load<@Collection>(from: self.CollectionStoragePath) ?? panic("collection not found")
         let lockedAssets = collection.lockedAssets!
         let availableAssets = collection.availableAssets!
         var lockedTypeCount = UInt64(0)
@@ -392,13 +385,37 @@ pub contract DEAssets: NonFungibleToken {
         availabeTypeCount = count
         collection.updateLockedAssets(typeId: typeId, count: lockedTypeCount)
         collection.updateAvailableAssets(typeId: typeId, count: availabeTypeCount)
-        self.account.save(<- collection, to: self.CollectionStoragePath)
+        acc.save(<- collection, to: self.CollectionStoragePath)
+    }
+
+    pub fun buy(acc: AuthAccount, typeId: UInt){
+        pre{
+            typeId !=0: "You can't buy townhall!"
+        }
+        let asset = self.nftTypeMappping[typeId] ?? panic("Asset type not found")
+        if asset.useDEToken {
+            DEToken.spend(acc: acc, amount: asset.price)
+        }
+        let isCollection =  acc.type(at: self.CollectionStoragePath)
+        if isCollection == nil{
+            let collection <- create Collection()
+            acc.save(<-collection, to: self.CollectionStoragePath)
+        }
+        var ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
+        if !ref.check(){
+            acc.link<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(
+                self.CollectionPublicPath,
+                target: self.CollectionStoragePath
+            )
+            ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
+        }
+        self.mintNFT(typeId: typeId, recipient: ref.borrow()! , name: asset.name, description: asset.description, thumbnail: asset.thumbnail)
     }
 
     init() {
         self.nftTypeMappping = {
             0: Asset(typeId: 0, name: "TownHall", description: "HQ of your empire.", price: 0.0, useDEToken: false, thumbnail: ""),
-            1: Asset(typeId: 1, name: "Miner", description: "Miner mines DEToken at certain interval", price: 2.0, useDEToken: false, thumbnail: ""),
+            1: Asset(typeId: 1, name: "Miner", description: "Miner mines DEToken at certain interval", price: 60.0, useDEToken: true, thumbnail: ""),
             2: Asset(typeId: 2, name: "Canon", description: "It's powefull canon machine which attacks enemy", price: 250.0, useDEToken: true, thumbnail: ""),
             3: Asset(typeId: 3, name: "Xbow", description: "It's building which having bow machine which attacks enemy with arrow", price: 150.0, useDEToken: true, thumbnail: ""),
             4: Asset(typeId: 4, name: "Tesla", description: "Its tesla tower which generates magnatic waves to attack on enemy.", price: 180.0, useDEToken: true, thumbnail: ""),
@@ -412,21 +429,6 @@ pub contract DEAssets: NonFungibleToken {
         // Set the named paths
         self.CollectionStoragePath = /storage/DEAssetsCollection
         self.CollectionPublicPath = /public/DEAssetsCollection
-        //self.MinterStoragePath = /storage/DEAssetsMinter
-
-        // Create a Collection resource and save it to storage
-        /*let collection <- create Collection()
-        self.account.save(<-collection, to: self.CollectionStoragePath)
-
-        // create a public capability for the collection
-        self.account.link<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(
-            self.CollectionPublicPath,
-            target: self.CollectionStoragePath
-        )
-
-        // Create a Minter resource and save it to storage
-        let minter <- create NFTMinter()
-        self.account.save(<-minter, to: self.MinterStoragePath)*/
 
         emit ContractInitialized()
     }
