@@ -125,7 +125,7 @@ pub contract DEAssets: NonFungibleToken {
                         self.royalties
                     )
                 case Type<MetadataViews.ExternalURL>():
-                    return MetadataViews.ExternalURL("https://example-nft.onflow.org/".concat(self.id.toString()))
+                    return MetadataViews.ExternalURL("https://dempire-assets.b-cdn.net/".concat(self.typeId.toString()).concat(".jpeg"))
                 case Type<MetadataViews.NFTCollectionData>():
                     return MetadataViews.NFTCollectionData(
                         storagePath: DEAssets.CollectionStoragePath,
@@ -141,19 +141,17 @@ pub contract DEAssets: NonFungibleToken {
                 case Type<MetadataViews.NFTCollectionDisplay>():
                     let media = MetadataViews.Media(
                         file: MetadataViews.HTTPFile(
-                            url: "https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.svg"
+                            url: "https://dempire-assets.b-cdn.net/townhall.jpeg"
                         ),
-                        mediaType: "image/svg+xml"
+                        mediaType: "image/jpeg"
                     )
                     return MetadataViews.NFTCollectionDisplay(
                         name: "DEmpire",
                         description: "In game assets of DEmpire.",
-                        externalURL: MetadataViews.ExternalURL("https://example-nft.onflow.org"),
+                        externalURL: MetadataViews.ExternalURL("https://dempire-assets.b-cdn.net/dempire.apk"),
                         squareImage: media,
                         bannerImage: media,
-                        socials: {
-                            "twitter": MetadataViews.ExternalURL("https://twitter.com/flow_blockchain")
-                        }
+                        socials: {}
                     )
                 case Type<MetadataViews.Traits>():
                     // exclude mintedTime and foo to show other uses of Traits
@@ -414,14 +412,14 @@ pub contract DEAssets: NonFungibleToken {
 
     init() {
         self.nftTypeMappping = {
-            0: Asset(typeId: 0, name: "TownHall", description: "HQ of your empire.", price: 0.0, useDEToken: false, thumbnail: ""),
-            1: Asset(typeId: 1, name: "Miner", description: "Miner mines DEToken at certain interval", price: 60.0, useDEToken: true, thumbnail: ""),
-            2: Asset(typeId: 2, name: "Canon", description: "It's powefull canon machine which attacks enemy", price: 250.0, useDEToken: true, thumbnail: ""),
-            3: Asset(typeId: 3, name: "Xbow", description: "It's building which having bow machine which attacks enemy with arrow", price: 150.0, useDEToken: true, thumbnail: ""),
-            4: Asset(typeId: 4, name: "Tesla", description: "Its tesla tower which generates magnatic waves to attack on enemy.", price: 180.0, useDEToken: true, thumbnail: ""),
-            5: Asset(typeId: 5, name: "Archer", description: "Archer is attacker which attacks with bow and arrow", price: 50.0, useDEToken: true, thumbnail: ""),
-            6: Asset(typeId: 6, name: "Robot", description: "It's robot which drill downs the buildings", price: 75.0, useDEToken: true, thumbnail: ""),
-            7: Asset(typeId: 7, name: "Valkyriee", description: "It's fast, smart and powerfull attacker which attacks with the gun", price: 80.0, useDEToken: true, thumbnail: "")
+            0: Asset(typeId: 0, name: "TownHall", description: "HQ of your empire.", price: 0.0, useDEToken: false, thumbnail: "https://dempire-assets.b-cdn.net/0.jpeg"),
+            1: Asset(typeId: 1, name: "Miner", description: "Miner mines DEToken at certain interval", price: 60.0, useDEToken: true, thumbnail: "https://dempire-assets.b-cdn.net/1.jpeg"),
+            2: Asset(typeId: 2, name: "Canon", description: "It's powefull canon machine which attacks enemy", price: 250.0, useDEToken: true, thumbnail: "https://dempire-assets.b-cdn.net/2.jpeg"),
+            3: Asset(typeId: 3, name: "Xbow", description: "It's building which having bow machine which attacks enemy with arrow", price: 150.0, useDEToken: true, thumbnail: "https://dempire-assets.b-cdn.net/3.jpeg"),
+            4: Asset(typeId: 4, name: "Tesla", description: "Its tesla tower which generates magnatic waves to attack on enemy.", price: 180.0, useDEToken: true, thumbnail: "https://dempire-assets.b-cdn.net/4.jpeg"),
+            5: Asset(typeId: 5, name: "Archer", description: "Archer is attacker which attacks with bow and arrow", price: 50.0, useDEToken: true, thumbnail: "https://dempire-assets.b-cdn.net/5.png"),
+            6: Asset(typeId: 6, name: "Robot", description: "It's robot which drill downs the buildings", price: 75.0, useDEToken: true, thumbnail: "https://dempire-assets.b-cdn.net/6.png"),
+            7: Asset(typeId: 7, name: "Valkyriee", description: "It's fast, smart and powerfull attacker which attacks with the gun", price: 80.0, useDEToken: true, thumbnail: "https://dempire-assets.b-cdn.net/7.png")
         }
         // Initialize the total supply
         self.totalSupply = 0

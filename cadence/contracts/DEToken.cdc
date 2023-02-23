@@ -119,20 +119,18 @@ pub contract DEToken: FungibleToken {
                 case Type<FungibleTokenMetadataViews.FTDisplay>():
                     let media = MetadataViews.Media(
                             file: MetadataViews.HTTPFile(
-                            url: "https://assets.website-files.com/5f6294c0c7a8cdd643b1c820/5f6294c0c7a8cda55cb1c936_Flow_Wordmark.svg"
+                            url: "https://dempire-assets.b-cdn.net/townhall.jpeg"
                         ),
-                        mediaType: "image/svg+xml"
+                        mediaType: "image/jpeg"
                     )
                     let medias = MetadataViews.Medias([media])
                     return FungibleTokenMetadataViews.FTDisplay(
-                        name: "Example Fungible Token",
-                        symbol: "EFT",
-                        description: "This fungible token is used as an example to help you develop your next FT #onFlow.",
-                        externalURL: MetadataViews.ExternalURL("https://example-ft.onflow.org"),
+                        name: "DEmpire Token",
+                        symbol: "DET",
+                        description: "DEmpire In Game currency",
+                        externalURL: MetadataViews.ExternalURL("https://dempire-assets.b-cdn.net/dempire.apk"),
                         logos: medias,
-                        socials: {
-                            "twitter": MetadataViews.ExternalURL("https://twitter.com/flow_blockchain")
-                        }
+                        socials: {}
                     )
                 case Type<FungibleTokenMetadataViews.FTVaultData>():
                     return FungibleTokenMetadataViews.FTVaultData(
