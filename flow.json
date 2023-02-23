@@ -1,0 +1,45 @@
+{
+	"contracts": {
+		"DEAssets": "cadence/contracts/DEAssets.cdc",
+		"DEToken": "cadence/contracts/DEToken.cdc",
+		"DEmpire": "cadence/contracts/DEmpire.cdc",
+		"FungibleToken": "cadence/contracts/flow-nft/utility/FungibleToken.cdc",
+		"MetadataViews": "cadence/contracts/flow-nft/MetadataViews.cdc",
+		"NFTForwarding": "cadence/contracts/flow-nft/utility/NFTForwarding.cdc",
+		"NonFungibleToken": "cadence/contracts/flow-nft/NonFungibleToken.cdc"
+	},
+	"networks": {
+		"emulator": "127.0.0.1:3569",
+		"mainnet": "access.mainnet.nodes.onflow.org:9000",
+		"testnet": "access.devnet.nodes.onflow.org:9000"
+	},
+	"accounts": {
+		"default": {
+			"address": "f669cb8d41ce0c74",
+			"key": "9ee2738ef9fb1179aff47bf457d3f77e50dcc65580930a7f4c5922ebc4b1beeb"
+		},
+		"emulator-account": {
+			"address": "f8d6e0586b0a20c7",
+			"key": "6d12eebfef9866c9b6fa92b97c6e705c26a1785b1e7944da701fc545a51d4673"
+		},
+		"flow-nft": {
+			"address": "fd43f9148d4b725d",
+			"key": "51c88c26262369e20c7906eb94149d78f52c2878c8ac140097a40637be1c662c"
+		}
+	},
+	"deployments": {
+		"emulator": {
+			"default": [
+				"DEAssets",
+				"DEToken",
+				"DEmpire",
+				"FungibleToken",
+				"NFTForwarding"
+			],
+			"flow-nft": [
+				"MetadataViews",
+				"NonFungibleToken"
+			]
+		}
+	}
+}
