@@ -78,7 +78,7 @@ pub contract DEmpire {
             "empire id is not incremented by one"
         }
         let newEmpire <- create Empire(ownerAddress: user)
-        // only for testnet
+        
         let acc = getAccount(user)
         let refAsset = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(DEAssets.CollectionPublicPath)
         if !refAsset.check(){
@@ -90,15 +90,13 @@ pub contract DEmpire {
             panic("No capablity found to receive token!")
         }
 
+        // only for testnet
         DEToken.faucet(receiver: refToken.borrow()!, amount: 1000.0)
         DEAssets.mintTownHall(recipient: refAsset.borrow()!)
 
         self.empireAccountMap[self.currentEmpireId] = user
         self.empireAccountRecord[user] = self.currentEmpireId
         self.currentEmpireId = self.currentEmpireId + 1
-        //acc.save<@Empire>(<-newEmpire, to: self.EmpireStoragePath)
-        //acc.link<&Empire{EmpireUpdate}>(self.EmpirePrivateRefPath, target: self.EmpireStoragePath)
-        //acc.link<&Empire{EmpireBuildings}>(self.EmpirePublicRefPath, target: self.EmpireStoragePath)
         emit EmpireStarted(account: acc.address)
         return <- newEmpire
     }
