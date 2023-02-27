@@ -31,6 +31,13 @@
 		"flow-nft": {
 			"address": "120e725050340cab",
 			"key": "52e288b7623a8553028e98ca5a89f3c8e8c9bf5993683d204bd0a5c3339692ec"
+		},
+		"flow-ob": {
+			"address": "d266971344d1a1ed",
+			"key": {
+				"type": "file",
+				"location": "flow-ob.pkey"
+			}
 		}
 	},
 	"deployments": {
@@ -46,6 +53,17 @@
 				"FungibleTokenMetadataViews"
 			],
 			"flow-nft": [
+				"MetadataViews",
+				"NonFungibleToken"
+			]
+		},
+		"testnet":{
+			"flow-ob":[
+				"DEAssets",
+				"DEToken",
+				"DEmpire",
+				"FungibleToken",
+				"FungibleTokenMetadataViews",
 				"MetadataViews",
 				"NonFungibleToken"
 			]
