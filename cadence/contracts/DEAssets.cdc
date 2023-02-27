@@ -1,6 +1,7 @@
 import NonFungibleToken from "./flow-nft/NonFungibleToken.cdc"
 import MetadataViews from "./flow-nft/MetadataViews.cdc"
 import DEToken from "./DEToken.cdc"
+import FungibleToken from "./flow-ft/FungibleToken.cdc"
 
 pub contract DEAssets: NonFungibleToken {
 
@@ -218,12 +219,24 @@ pub contract DEAssets: NonFungibleToken {
             return <-_token
         }
 
-        access(contract) fun updateLockedAssets(typeId: UInt, count: UInt64){
+        access(account) fun updateLockedAssets(typeId: UInt, count: UInt64){
+            let lockCount = self.lockedAssets[typeId] ==  nil ? UInt64(0) : self.lockedAssets[typeId]!
+            let availableCount = self.availableAssets[typeId] ==  nil ? UInt64(0) : self.availableAssets[typeId]!
+            if(count > lockCount + availableCount ){
+                panic("Locking more assets then you own")
+            }
             self.lockedAssets[typeId] = count
+            self.availableAssets[typeId] = availableCount + lockCount - count
         }
 
-        access(contract) fun updateAvailableAssets(typeId: UInt, count: UInt64){
+        access(account) fun updateAvailableAssets(typeId: UInt, count: UInt64){
+            let lockCount = self.lockedAssets[typeId] ==  nil ? UInt64(0) : self.lockedAssets[typeId]!
+            let availableCount = self.availableAssets[typeId] ==  nil ? UInt64(0) : self.availableAssets[typeId]!
+            if(count > lockCount + availableCount ){
+                panic("unLocking more assets then you own")
+            }
             self.availableAssets[typeId] = count
+            self.lockedAssets[typeId] = availableCount + lockCount - count
         }
 
         /// Adds an NFT to the collections dictionary and adds the ID to the id array
@@ -342,89 +355,22 @@ pub contract DEAssets: NonFungibleToken {
         DEAssets.totalSupply = DEAssets.totalSupply + UInt64(1)
     }
 
-    access(account) fun lockAsset(acc: AuthAccount, typeId: UInt, count: UInt64){
-        let collection <- acc.load<@Collection>(from: self.CollectionStoragePath) ?? panic("collection not found")
-        let lockedAssets = collection.lockedAssets!
-        let availableAssets = collection.availableAssets!
-        var lockedTypeCount = UInt64(0)
-        var availabeTypeCount = UInt64(0)
-        if lockedAssets[typeId] != nil {
-            lockedTypeCount = lockedAssets[typeId]!
-        }
-        if availableAssets[typeId] != nil {
-            availabeTypeCount = availableAssets[typeId]!
-        }
-        if (availabeTypeCount + lockedTypeCount) - count < 0{
-            panic("Locking assets more thne you own!")
-        }
-        availabeTypeCount = (availabeTypeCount + lockedTypeCount) - count
-        lockedTypeCount = count
-        collection.updateLockedAssets(typeId: typeId, count: lockedTypeCount)
-        collection.updateAvailableAssets(typeId: typeId, count: availabeTypeCount)
-        acc.save(<- collection, to: self.CollectionStoragePath)
-    }
-
-    access(account) fun unLockAsset(acc: AuthAccount, typeId: UInt, count: UInt64){
-        let collection <- acc.load<@Collection>(from: self.CollectionStoragePath) ?? panic("collection not found")
-        let lockedAssets = collection.lockedAssets!
-        let availableAssets = collection.availableAssets!
-        var lockedTypeCount = UInt64(0)
-        var availabeTypeCount = UInt64(0)
-        if lockedAssets[typeId] != nil {
-            lockedTypeCount = lockedAssets[typeId]!
-        }
-        if availableAssets[typeId] != nil {
-            availabeTypeCount = availableAssets[typeId]!
-        }
-        if (availabeTypeCount + lockedTypeCount) - count < 0{
-            panic("unLocking assets more then you own!")
-        }
-        lockedTypeCount = (availabeTypeCount + lockedTypeCount) - count
-        availabeTypeCount = count
-        collection.updateLockedAssets(typeId: typeId, count: lockedTypeCount)
-        collection.updateAvailableAssets(typeId: typeId, count: availabeTypeCount)
-        acc.save(<- collection, to: self.CollectionStoragePath)
-    }
-
-    access(account) fun mintTownHall(acc: AuthAccount){
+    access(account) fun mintTownHall(recipient: &{NonFungibleToken.CollectionPublic}){
         let asset = self.nftTypeMappping[0] ?? panic("Asset type not found")
-        let isCollection =  acc.type(at: self.CollectionStoragePath)
-        if isCollection == nil{
-            let collection <- create Collection()
-            acc.save(<-collection, to: self.CollectionStoragePath)
-        }
-        var ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
-        if !ref.check(){
-            acc.link<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(
-                self.CollectionPublicPath,
-                target: self.CollectionStoragePath
-            )
-            ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
-        }
-        self.mintNFT(typeId: 0, recipient: ref.borrow()! , name: asset.name, description: asset.description, thumbnail: asset.thumbnail)
+        self.mintNFT(typeId: 0, recipient: recipient, name: asset.name, description: asset.description, thumbnail: asset.thumbnail)
     }
 
-    pub fun buy(acc: AuthAccount, typeId: UInt){
+    pub fun buy(ownerAddress: Address, vault: @FungibleToken.Vault, typeId: UInt){
         pre{
             typeId !=0: "You can't buy townhall!"
         }
         let asset = self.nftTypeMappping[typeId] ?? panic("Asset type not found")
-        if asset.useDEToken {
-            DEToken.spend(acc: acc, amount: asset.price)
+        if vault.balance < asset.price {
+            panic("Amount paid is less then asset's price value")
         }
-        let isCollection =  acc.type(at: self.CollectionStoragePath)
-        if isCollection == nil{
-            let collection <- create Collection()
-            acc.save(<-collection, to: self.CollectionStoragePath)
-        }
-        var ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
-        if !ref.check(){
-            acc.link<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(
-                self.CollectionPublicPath,
-                target: self.CollectionStoragePath
-            )
-            ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
-        }
+        destroy vault
+        let acc = getAccount(ownerAddress)
+        let ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
         self.mintNFT(typeId: typeId, recipient: ref.borrow()! , name: asset.name, description: asset.description, thumbnail: asset.thumbnail)
     }
 
@@ -445,6 +391,16 @@ pub contract DEAssets: NonFungibleToken {
         // Set the named paths
         self.CollectionStoragePath = /storage/DEAssetsCollection
         self.CollectionPublicPath = /public/DEAssetsCollection
+
+
+        let isStoragePathExsist = self.account.type(at: self.CollectionStoragePath)
+        if isStoragePathExsist == nil{
+            // Put a new Collection in storage
+            self.account.save<@Collection>(<- create Collection(), to: self.CollectionStoragePath)
+
+            // Create a public capability for the Collection
+            self.account.link<&Collection>(self.CollectionPublicPath, target: self.CollectionStoragePath)
+        }
 
         emit ContractInitialized()
     }

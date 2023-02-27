@@ -1,7 +1,8 @@
 // read more about Cadence transactions here https://developers.flow.com/cadence/language/transactions
 import "DEmpire"
+import "DEAssets"
 
-transaction() {
+transaction {
     let acc: AuthAccount
 
     prepare(signer: AuthAccount) {
@@ -12,12 +13,14 @@ transaction() {
 
     execute {
         // save the resource to the storage, read more about it here https://developers.flow.com/cadence/language/accounts#account-storage
-        var ref = self.acc.getCapability<&DEmpire.Empire{DEmpire.EmpireUpdate}>(DEmpire.EmpirePrivateRefPath)
+        let collection <- self.acc.load<@DEAssets.Collection>(from: DEAssets.CollectionStoragePath) ?? panic("collection not found")
+        let ref = self.acc.getCapability<&DEmpire.Empire{DEmpire.EmpireUpdate}>(DEmpire.EmpirePrivateRefPath)
         if ref.check() {
             let borrowdRef = ref.borrow()!
-            return borrowdRef.saveBuildingPositions(acc: self.acc, data: {1: [[Fix64(0.0)]]})
+            let updatedCollection <- borrowdRef.saveBuildingPositions(assetCollection: <-collection, data: {1: [[Fix64(0.0)]]})
+            self.acc.save(<-updatedCollection, to: DEAssets.CollectionStoragePath)
         }else{
-            panic("game not found")
+            panic("private reference to empire not found")
         }
     }
 

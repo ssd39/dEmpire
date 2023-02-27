@@ -12,6 +12,7 @@ pub contract DEToken: FungibleToken {
     pub let VaultPublicPath: PublicPath
     pub let ReceiverPublicPath: PublicPath
     pub let AdminStoragePath: StoragePath
+    pub let ProviderPrivatePath: PrivatePath
 
     /// The event that is emitted when the contract is created
     pub event TokensInitialized(initialSupply: UFix64)
@@ -231,54 +232,9 @@ pub contract DEToken: FungibleToken {
         }
     }
 
-    access(account) fun faucet(acc: AuthAccount, amount: UFix64) {
+    access(account) fun faucet(receiver: &Vault{FungibleToken.Receiver}, amount: UFix64) {
+        receiver.deposit(from:<-create Vault(balance: amount) )
         emit TokensMinted(amount: amount)
-        let isTokenExsist = acc.type(at: self.VaultStoragePath)
-        if isTokenExsist != nil {
-            let currentVault <- acc.load<@Vault>(from: self.VaultStoragePath) ?? panic("vault not found")
-            let vault <-create Vault(balance: amount)
-            currentVault.deposit(from: <- vault)
-            acc.save(<-currentVault, to: self.VaultStoragePath)
-        } else {
-            acc.save( <-create Vault(balance: amount), to: self.VaultStoragePath)
-        }
-        self.createCapablity(acc: acc)
-    }
-
-    access(account) fun createCapablity(acc: AuthAccount){
-        let receiverRef = acc.getCapability<&{FungibleToken.Receiver}>(self.ReceiverPublicPath)
-        if !receiverRef.check(){
-            // Create a public capability to the stored Vault that exposes
-            // the `deposit` method through the `Receiver` interface.
-            acc.link<&{FungibleToken.Receiver}>(
-                self.ReceiverPublicPath,
-                target: self.VaultStoragePath
-            )
-        }
-
-        let vaultPublicRef = acc.getCapability<&DEToken.Vault{FungibleToken.Balance}>(self.VaultPublicPath)
-        if !vaultPublicRef.check(){
-            // Create a public capability to the stored Vault that only exposes
-            // the `balance` field and the `resolveView` method through the `Balance` interface
-            acc.link<&DEToken.Vault{FungibleToken.Balance}>(
-                self.VaultPublicPath,
-                target: self.VaultStoragePath
-            )
-        }
-    }
-
-    access(account) fun spend(acc: AuthAccount, amount: UFix64){
-        let vault <- acc.load<@DEToken.Vault>(from: self.VaultStoragePath) ?? panic("Vault not found")
-        destroy vault.withdraw(amount: amount)
-        acc.save(<- vault, to: self.VaultStoragePath)
-    }
-
-    access(account) fun credit(acc: Address, amount: UFix64){
-        let vault <- create  Vault(balance: amount)
-        let account = getAccount(acc)
-        let receiverRef = account.getCapability<&{FungibleToken.Receiver}>(self.ReceiverPublicPath)
-        let borrowedRef = receiverRef.borrow() ?? panic("not able to borrow")
-        borrowedRef.deposit(from: <-vault)
     }
 
     init() {
@@ -286,6 +242,7 @@ pub contract DEToken: FungibleToken {
         self.VaultStoragePath = /storage/DETokenVault
         self.VaultPublicPath = /public/DETokenMetadata
         self.ReceiverPublicPath = /public/DETokenReceiver
+        self.ProviderPrivatePath = /private/DETokenProvider
         self.AdminStoragePath = /storage/DETokenAdmin
 
         let isStoragePathExsist = self.account.type(at: self.VaultStoragePath)
