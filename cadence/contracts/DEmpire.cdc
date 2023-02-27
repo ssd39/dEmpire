@@ -36,7 +36,6 @@ pub contract DEmpire {
             for asset in assetTypes {
                 let positions = data[asset]!
                 assetCollection.updateLockedAssets(typeId: asset, count: UInt64(positions.length))
-                //DEAssets.lockAsset(acc:  acc, typeId: asset, count: UInt64(positions.length))
                 self.buildingsPosition[asset] = positions
             }
             return  <- assetCollection
