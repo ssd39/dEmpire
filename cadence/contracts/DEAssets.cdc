@@ -386,6 +386,24 @@ pub contract DEAssets: NonFungibleToken {
         acc.save(<- collection, to: self.CollectionStoragePath)
     }
 
+    access(account) fun mintTownHall(acc: AuthAccount){
+        let asset = self.nftTypeMappping[0] ?? panic("Asset type not found")
+        let isCollection =  acc.type(at: self.CollectionStoragePath)
+        if isCollection == nil{
+            let collection <- create Collection()
+            acc.save(<-collection, to: self.CollectionStoragePath)
+        }
+        var ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
+        if !ref.check(){
+            acc.link<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(
+                self.CollectionPublicPath,
+                target: self.CollectionStoragePath
+            )
+            ref = acc.getCapability<&DEAssets.Collection{NonFungibleToken.CollectionPublic, DEAssets.DEAssetsCollectionPublic, MetadataViews.ResolverCollection}>(self.CollectionPublicPath)
+        }
+        self.mintNFT(typeId: 0, recipient: ref.borrow()! , name: asset.name, description: asset.description, thumbnail: asset.thumbnail)
+    }
+
     pub fun buy(acc: AuthAccount, typeId: UInt){
         pre{
             typeId !=0: "You can't buy townhall!"

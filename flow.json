@@ -18,19 +18,26 @@
 	"accounts": {
 		"default": {
 			"address": "045a1763c93006ca",
-			"key": "eaf7979a8bfb90491ea081e00c4099687af32e6a39d30b8486c3d570ff9ac073"
+			"key": "967eb9df0275d379650b2033e81e616c7df1fc2f19ad9e209d07d27f7e049b41"
 		},
 		"emulator-account": {
 			"address": "f8d6e0586b0a20c7",
-			"key": "884043f858ffb5fab8dfad7c028f78d05ec35adc50f49473b2f8a208ea8e7ce4"
+			"key": "a19f377895b768dd9d9668a10f744a2d2e94048dfa51327baf57d053206c0367"
 		},
 		"flow-ft": {
-			"address": "f669cb8d41ce0c74",
-			"key": "4b48f6e4434e70038690b80eeb80a66baf4797abd414ac1e149afc8b051a7ee9"
+			"address": "120e725050340cab",
+			"key": "d454008e6d699d842c40ec78f31b51915389fdec4a05d8c20303f64ba8334ab1"
 		},
 		"flow-nft": {
-			"address": "192440c99cb17282",
-			"key": "83204e4a3d99c0b548ea3e83456396f5260a488be70e53fe21843f4378c9befe"
+			"address": "f669cb8d41ce0c74",
+			"key": "b7841e5a6ce17d8e64fa0b7746015ae13d420605aeb6a6b83790a9d13ccb3782"
+		},
+		"flow-ob": {
+			"address": "b1cd0fee0cd3935e",
+			"key": {
+				"type": "file",
+				"location": "flow-ob.pkey"
+			}
 		}
 	},
 	"deployments": {
@@ -49,6 +56,19 @@
 				"MetadataViews",
 				"NonFungibleToken"
 			]
+		},
+		"testnet":{
+			"flow-ob": [
+				"DEAssets",
+				"DEToken",
+				"DEmpire",
+				"NFTForwarding",
+				"FungibleToken",
+				"FungibleTokenMetadataViews",
+				"MetadataViews",
+				"NonFungibleToken"
+			]
 		}
 	}
 }
+ 

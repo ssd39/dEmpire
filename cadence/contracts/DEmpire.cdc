@@ -60,6 +60,7 @@ pub contract DEmpire {
         let newEmpire <- create Empire()
         // only for testnet
         DEToken.faucet(acc: acc, amount: 1000.0)
+        DEAssets.mintTownHall(acc: acc)
         self.empireAccountMap[self.currentEmpireId] = acc.address
         self.currentEmpireId = self.currentEmpireId + 1
         acc.save<@Empire>(<-newEmpire, to: self.EmpireStoragePath)
